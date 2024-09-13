@@ -1,57 +1,40 @@
-const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
-const mongoose = require("mongoose");
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const { database } = require('./db/database.js'); // Assuming this is a CommonJS module
 
-const config = require("./db/config.json");
-
-mongoose.connect(
-  `mongodb+srv://${config.username}:${config.password}@cluster0.cd3mi9q.mongodb.net/${config.database}?retryWrites=true&w=majority`,
-  {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-  }
-);
+// Import routes
+const index = require('./routes/index.js');
+const hello = require('./routes/hello.js');
+const post = require('./routes/post.js');
+const get = require('./routes/get.js');
+const put = require('./routes/put.js');
+const deleteRoute = require('./routes/delete.js');
 
 const app = express();
 const port = process.env.PORT || 1337;
-const index = require("./routes/index");
-const hello = require("./routes/hello");
-const post = require("./routes/post");
-const get = require("./routes/get");
-const put = require("./routes/put");
-const deletee = require("./routes/delete");
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(morgan('combined'));
 
-// don't show the log when it is test
-if (process.env.NODE_ENV !== "test") {
-  // use morgan to log at command line
-  app.use(morgan("combined")); // 'combined' outputs the Apache style LOGs
-}
-
-// Add routes for 404 and error handling
-// Catch 404 and forward to error handler
-// Put this last
-
-// Add a route
-
+// Add routes to the app
 app.use(index);
 app.use(hello);
 app.use(post);
 app.use(get);
 app.use(put);
-app.use(deletee);
+app.use(deleteRoute);
 
-// This is middleware called for all routes.
-// Middleware takes three parameters.
+// Middleware for 404 error
 app.use((req, res, next) => {
-  var err = new Error("Not Found");
+  const err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
+// Error-handling middleware
 app.use((err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
@@ -60,7 +43,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     errors: [
       {
-        status: err.status,
+        status: err.status || 500,
         title: err.message,
         detail: err.message,
       },
@@ -68,5 +51,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start up server
-app.listen(port, () => console.log(`Example API listening on port ${port}!`));
+// Connect to the database and start the server
+database.connectDB()
+  .then(() => {
+    console.log('Database connected successfully');
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to connect to the database:', err);
+  });
+
+  
+const server = app.listen(port, () => console.log(`Example API listning on port ${port}!`));
+module.exports = server

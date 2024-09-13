@@ -1,28 +1,22 @@
-const express = require("express");
+const express = require('express');
+const mongoose = require('mongoose');
+const Document = require('../models/Doc.js'); // Adjust path and extension if needed
+
 const router = express.Router();
-const mongoose = require("mongoose");
 
-const documents = require("../models/Doc");
-
-router.get("/get", (req, res, next) => {
-  //   const id = req.params.documentID
-
-  documents
-    .find()
-    .exec()
-    .then((doc) => {
-      console.log("From database:", doc);
-      if (doc) {
-        res.send(res.status(200).json(doc));
-      } else {
-        res
-          .status(404)
-          .json({ message: "No valid entry found for provided ID!" });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ error: err });
-    });
+router.get('/get', async (req, res, next) => {
+  try {
+    const docs = await Document.find().exec();
+    console.log('From database:', docs);
+    if (docs && docs.length > 0) {
+      res.status(200).json(docs);
+    } else {
+      res.status(404).json({ message: 'No valid entry found!' });
+    }
+  } catch (err) {
+    console.error(err); // Use console.error for logging errors
+    res.status(500).json({ error: err.message });
+  }
 });
+
 module.exports = router;

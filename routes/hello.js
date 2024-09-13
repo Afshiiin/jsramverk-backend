@@ -1,16 +1,15 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
 
-router.get("/hello/:msg", (req, res) => {
-    const data = {
-        data: {
-            msg: req.params.msg
-        }
-    };
+const router = express.Router();
 
-    res.json(data);
+router.get('/hello/:msg', (req, res) => {
+  const data = {
+    data: {
+      msg: req.params.msg,
+    },
+  };
+
+  res.json(data);
 });
-
-
 
 module.exports = router;
