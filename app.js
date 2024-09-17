@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const { database } = require('./db/database.js'); // Assuming this is a CommonJS module
+const http = require("http");
+const { Server } = require("socket.io");
 
 // Import routes
 const index = require('./routes/index.js');
@@ -51,11 +53,57 @@ app.use((err, req, res, next) => {
   });
 });
 
+//socket.io
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000", 
+    methods: ["GET", "POST"],
+  },
+});
+
+const userRooms = new Map();
+
+io.on('connection', (socket) => {
+
+  userRooms.set(socket.id, new Set());
+
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId);
+    userRooms.get(socket.id).add(roomId);
+  });
+
+  socket.on('leave-room', (roomId) => {
+    socket.leave(roomId);
+    userRooms.get(socket.id).delete(roomId);
+  });
+
+  socket.on('sendValuetoSocket', (data, roomId) => {
+    if (userRooms.get(socket.id).has(roomId)) {
+      socket.to(roomId).emit('reciveValuefromSocket', data);
+      console.log(`Data sent to room ${roomId}:`, data);
+    } else {
+      console.log(`Socket ${socket.id} is not in room ${roomId}. Data not sent.`);
+    }
+  });
+  
+
+  socket.on('disconnect', () => {
+    userRooms.get(socket.id).forEach(roomId => {
+      socket.leave(roomId);
+      console.log(`User disconnected from room: ${roomId}`);
+    });
+    userRooms.delete(socket.id);
+  });
+});
+
+
 // Connect to the database and start the server
 database.connectDB()
   .then(() => {
     console.log('Database connected successfully');
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
   })
@@ -63,6 +111,4 @@ database.connectDB()
     console.error('Failed to connect to the database:', err);
   });
 
-  
-const server = app.listen(port, () => console.log(`Example API listning on port ${port}!`));
-module.exports = server
+module.exports = server;
