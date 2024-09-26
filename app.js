@@ -4,6 +4,9 @@ const morgan = require('morgan');
 const { database } = require('./db/database.js'); // Assuming this is a CommonJS module
 const http = require("http");
 const { Server } = require("socket.io");
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
+
 
 // Import routes
 const index = require('./routes/index.js');
@@ -12,14 +15,29 @@ const post = require('./routes/post.js');
 const get = require('./routes/get.js');
 const put = require('./routes/put.js');
 const deleteRoute = require('./routes/delete.js');
+const register = require('./routes/register.js');
+const login = require('./routes/login.js');
+const getUsers = require('./routes/getUsers.js');
+
+const { requireAuth } = require('./middelware/authMiddelware.js');
+
 
 const app = express();
+const path = require('path');
+
 const port = process.env.PORT || 1337;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000',  
+  credentials: true, 
+};
+
+app.use(cookieParser());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('combined'));
+
 
 // Add routes to the app
 app.use(index);
@@ -28,6 +46,45 @@ app.use(post);
 app.use(get);
 app.use(put);
 app.use(deleteRoute);
+app.use(register);
+app.use(login);
+app.use(getUsers);
+
+
+
+
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'jsramverk-frontend/build')));
+
+// Protect the /editor route with authentication
+app.get('/editor', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'jsramverk-frontend/build', 'index.html'));
+});
+
+
+
+
+
+// Serve static files
+// Serve static files from the React app
+/* app.use(express.static(path.join(__dirname, 'client/build')));
+
+// Example of a dynamic route that requires authentication
+app.get('/editor', requireAuth, (req, res) => {
+    console.log(req.params); // Check what ID is being sent
+    res.sendFile(path.join(__dirname, 'client/build/index.html'));
+});
+ */
+// Handles any requests that don't match the ones ab
+
+
+
+/* app.get('*', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../jsramverk-frontend/build', 'index.html'));
+}); */
+
+
 
 // Middleware for 404 error
 app.use((req, res, next) => {

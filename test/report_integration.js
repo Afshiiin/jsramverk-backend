@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 
 (async () => {
     const { expect } = await import('chai');
-    const chaiHttp = (await import('chai-http/index.js')).default; // Explicitly specifying the file extension
+    const chaiHttp = (await import('chai-http/index.js')).default; 
   
     const chai = (await import('chai')).default;
     chai.use(chaiHttp);

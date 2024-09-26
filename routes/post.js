@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Document = require('../models/Doc.js'); // Ensure the path and extension are correct
+const Document = require('../models/Doc.js'); 
 
 const router = express.Router();
 
@@ -9,6 +9,8 @@ router.post('/post', async (req, res) => {
     _id: new mongoose.Types.ObjectId(),
     name: req.body.name,
     value: req.body.value,
+    owner: req.body.owner,
+    allowed_users: req.body.allowed_users,
   });
 
   try {

@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Document = require('../models/Doc.js'); // Ensure the path and extension are correct
+const Document = require('../models/Doc.js'); 
 
 const router = express.Router();
 
@@ -11,6 +11,7 @@ router.put('/put', async (req, res) => {
       {
         name: req.body.name,
         value: req.body.value,
+        allowed_users: req.body.allowed_users,
       }
     );
 
