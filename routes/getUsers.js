@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/getUsers', async (req, res) => {
   try {
-    const users = await Users.find().select('u_email').exec(); 
+    const users = await Users.find().exec(); 
     if (users && users.length > 0) {
       return res.status(200).json(users); 
     } else {

@@ -18,13 +18,12 @@ const deleteRoute = require('./routes/delete.js');
 const register = require('./routes/register.js');
 const login = require('./routes/login.js');
 const getUsers = require('./routes/getUsers.js');
-
 const { requireAuth } = require('./middelware/authMiddelware.js');
-
-
 const app = express();
 const path = require('path');
-
+const { graphqlHTTP } = require('express-graphql');
+const { GraphQLSchema } = require('graphql');
+const RootQuery = require('./graphQL/root.js');
 const port = process.env.PORT || 1337;
 
 // Middleware
@@ -32,6 +31,23 @@ const corsOptions = {
   origin: 'http://localhost:3000',  
   credentials: true, 
 };
+
+//graphQL
+const schema = new GraphQLSchema({
+  query: RootQuery,
+});
+
+app.use('/graphql', 
+  cors({ origin: ['http://localhost:3000'] }),
+  express.json(),
+  graphqlHTTP({
+      schema: schema,
+      graphiql: true, 
+  })
+);
+
+
+
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
@@ -63,26 +79,6 @@ app.get('/editor', requireAuth, (req, res) => {
 });
 
 
-
-
-
-// Serve static files
-// Serve static files from the React app
-/* app.use(express.static(path.join(__dirname, 'client/build')));
-
-// Example of a dynamic route that requires authentication
-app.get('/editor', requireAuth, (req, res) => {
-    console.log(req.params); // Check what ID is being sent
-    res.sendFile(path.join(__dirname, 'client/build/index.html'));
-});
- */
-// Handles any requests that don't match the ones ab
-
-
-
-/* app.get('*', requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, '../jsramverk-frontend/build', 'index.html'));
-}); */
 
 
 
